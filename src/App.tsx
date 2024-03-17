@@ -23,6 +23,7 @@ function App() {
       >
         <p data-board-zoom></p>
         <p data-board-pan></p>
+        <p data-board-mode></p>
       </div>
       <div
         id="tools"

@@ -1,3 +1,12 @@
+import { InputControl } from "./InputControl";
+
+interface Dot {
+  x: number;
+  y: number;
+  radius: number;
+  color: string;
+}
+
 interface Props {
   element: HTMLCanvasElement;
 }
@@ -6,6 +15,7 @@ export class Board {
   private rafId: number;
   private element: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  inputControl: InputControl;
   dpr: number;
   stageWidth: number;
   stageHeight: number;
@@ -14,7 +24,7 @@ export class Board {
   backgroundColor: string;
   gridColor: string;
   gridGap: number;
-  mouseMode: "move";
+  mouseMode: "move" | "draw";
   mouse: {
     x: number;
     y: number;
@@ -26,15 +36,17 @@ export class Board {
     y: number;
   };
   updateUIMap: { [key: string]: HTMLElement | undefined };
+  dots: Dot[];
 
   constructor(props: Props) {
+    this.inputControl = new InputControl();
     this.element = props.element;
     this.dpr = window.devicePixelRatio > 1 ? 2 : 1;
     this.ctx = this.element.getContext("2d")!;
     this.backgroundColor = "rgb(16,16,16)";
     this.gridColor = "rgba(255,255,255,0.09)";
     this.gridGap = 50;
-    this.mouseMode = "move";
+    this.mouseMode = "draw";
     this.mouse = {
       x: 0,
       y: 0,
@@ -46,11 +58,14 @@ export class Board {
       y: 0,
     };
     this.updateUIMap = {};
+    this.dots = [];
 
     this.resize();
     window.addEventListener("resize", this.resize.bind(this));
-    this.handleMouse();
     this.rafId = requestAnimationFrame(this.animate.bind(this));
+
+    this.handleMouse();
+    this.handleKeyboard();
   }
 
   draw() {
@@ -59,6 +74,7 @@ export class Board {
     this.ctx.save();
     this.ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
+    this.drawDots();
     this.ctx.restore();
   }
 
@@ -101,6 +117,7 @@ export class Board {
       "pan",
       `Pan: ${this.pan.x.toFixed(0)}px, ${this.pan.y.toFixed(0)}px`,
     );
+    this.syncTextToUI("mode", `Mode: ${this.mouseMode}`);
   }
 
   cleanup() {
@@ -113,6 +130,18 @@ export class Board {
     this.draw();
   }
 
+  handleKeyboard() {
+    this.inputControl.onChange(" ", (isDown) => {
+      if (isDown) {
+        this.mouseMode = "move";
+        document.body.style.cursor = this.mouse.isDown ? "grabbing" : "grab";
+      } else {
+        this.mouseMode = "draw";
+        document.body.style.cursor = "default";
+      }
+    });
+  }
+
   handleMouse() {
     this.element.addEventListener("pointerdown", (e) => {
       const rect = this.element.getBoundingClientRect();
@@ -120,8 +149,11 @@ export class Board {
       this.mouse.x = e.clientX - rect.left;
       this.mouse.y = e.clientY - rect.top;
 
-      if (this.mouseMode === "move") {
-        document.body.style.cursor = "grabbing";
+      if (this.mouseMode === "draw") {
+        const realX = this.toRealX(this.mouse.x, true);
+        const realY = this.toRealY(this.mouse.y, true);
+        const { x, y } = this.snapToGrid(realX, realY);
+        this.addDot(x, y, 5, "white");
       }
     });
 
@@ -140,6 +172,9 @@ export class Board {
         this.pan.x += Math.round(e.movementX / this.zoom);
         this.pan.y += Math.round(e.movementY / this.zoom);
       }
+      if (this.mouseMode === "draw") {
+        document.body.style.cursor = "default";
+      }
     });
 
     this.element.addEventListener("wheel", (e) => {
@@ -154,12 +189,31 @@ export class Board {
     });
   }
 
-  toRealX(xVirtual: number) {
+  toRealX(xVirtual: number, applyZoom = false) {
+    if (applyZoom) return xVirtual / this.zoom - this.pan.x;
     return xVirtual - this.pan.x;
   }
 
-  toRealY(yVirtual: number) {
+  toRealY(yVirtual: number, applyZoom = false) {
+    if (applyZoom) return yVirtual / this.zoom - this.pan.y;
     return yVirtual - this.pan.y;
+  }
+
+  toVirtualX(xReal: number, applyZoom = false) {
+    if (applyZoom) return xReal * this.zoom + this.pan.x;
+    return xReal + this.pan.x;
+  }
+
+  toVirtualY(yReal: number, applyZoom = false) {
+    if (applyZoom) return yReal * this.zoom + this.pan.y;
+    return yReal + this.pan.y;
+  }
+
+  snapToGrid(x: number, y: number) {
+    return {
+      x: Math.round(x / this.gridGap) * this.gridGap,
+      y: Math.round(y / this.gridGap) * this.gridGap,
+    };
   }
 
   get virtualWidth() {
@@ -218,5 +272,24 @@ export class Board {
       this.ctx.stroke();
       this.drawText(`${realY}`, 14, y);
     }
+  }
+
+  addDot(x: number, y: number, radius: number, color: string) {
+    this.dots.push({ x, y, radius, color });
+  }
+
+  drawDots() {
+    this.dots.forEach((dot) => {
+      this.ctx.beginPath();
+      this.ctx.arc(
+        this.toVirtualX(dot.x),
+        this.toVirtualY(dot.y),
+        dot.radius,
+        0,
+        Math.PI * 2,
+      );
+      this.ctx.fillStyle = dot.color;
+      this.ctx.fill();
+    });
   }
 }
