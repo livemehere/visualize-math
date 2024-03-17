@@ -362,7 +362,6 @@ export class Board {
 
   addDot(x: number, y: number, radius: number, color: string) {
     this.dots.push({ id: this.seq++, x, y, absoluteRadius: radius, color });
-    console.log(this.dots);
   }
 
   removeDots(dots: Dot[]) {
@@ -569,7 +568,6 @@ export class Board {
       y: circle.y * this.gridGap,
       radius: circle.radius * this.gridGap,
     });
-    console.log(this.circles);
   }
 
   drawCircle() {
