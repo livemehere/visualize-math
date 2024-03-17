@@ -13,6 +13,13 @@ export interface Line {
   to: Dot;
 }
 
+export interface Circle {
+  id: number;
+  x: number;
+  y: number;
+  radius: number;
+}
+
 type MouseMode = "move" | "draw" | "select";
 
 interface Props {
@@ -50,6 +57,8 @@ export class Board {
   selectedDots: Dot[];
   lines: Line[];
   selectedLines: Line[];
+  circles: Circle[];
+  selectedCircles: Circle[];
   previewDot?: Dot;
   previewDotColor: string;
   selectBox?: {
@@ -62,6 +71,7 @@ export class Board {
   /* from outside of class */
   onSelectDots?: (dots: Dot[]) => void;
   onSelectLines?: (lines: Line[]) => void;
+  onSelectCircles?: (circles: Circle[]) => void;
 
   constructor(props: Props) {
     this.inputControl = new InputControl();
@@ -89,6 +99,8 @@ export class Board {
     this.lines = [];
     this.selectedDots = [];
     this.selectedLines = [];
+    this.circles = [];
+    this.selectedCircles = [];
     this.onSelectDots = props.onSelectDots;
 
     this.resize();
@@ -111,6 +123,8 @@ export class Board {
     this.drawDots();
     this.drawSelectBox();
     this.drawSelectedDots();
+    this.drawCircle();
+    this.drawSelectedCircles();
     this.ctx.restore();
   }
 
@@ -364,7 +378,15 @@ export class Board {
     );
   }
 
+  removeCircles(circles: Circle[]) {
+    this.circles = this.circles.filter((circle) => !circles.includes(circle));
+    this.selectedCircles = this.selectedCircles.filter(
+      (circle) => !circles.includes(circle),
+    );
+  }
+
   drawDots() {
+    this.ctx.save();
     this.dots.forEach((dot) => {
       this.ctx.beginPath();
       this.ctx.arc(
@@ -377,9 +399,11 @@ export class Board {
       this.ctx.fillStyle = dot.color;
       this.ctx.fill();
     });
+    this.ctx.restore();
   }
 
   drawPreviewDot() {
+    this.ctx.save();
     if (this.previewDot && this.mouseMode === "draw") {
       this.ctx.beginPath();
       this.ctx.arc(
@@ -392,9 +416,11 @@ export class Board {
       this.ctx.fillStyle = this.previewDot.color;
       this.ctx.fill();
     }
+    this.ctx.restore();
   }
 
   drawSelectBox() {
+    this.ctx.save();
     if (this.selectBox) {
       const { x1, y1, x2, y2 } = this.selectBox;
       this.ctx.beginPath();
@@ -405,9 +431,11 @@ export class Board {
       this.ctx.stroke();
       this.ctx.fill();
     }
+    this.ctx.restore();
   }
 
   drawSelectedDots() {
+    this.ctx.save();
     this.selectedDots.forEach((dot) => {
       this.ctx.beginPath();
       this.ctx.arc(
@@ -429,6 +457,7 @@ export class Board {
         this.toVirtualY(dot.y) - 10,
       );
     });
+    this.ctx.restore();
   }
 
   updateSelected() {
@@ -456,16 +485,25 @@ export class Board {
           (x2 > minX && x2 < maxX && y2 > minY && y2 < maxY)
         );
       });
+      const selectedCircles = this.circles.filter((circle) => {
+        const x = this.toVirtualX(circle.x);
+        const y = this.toVirtualY(circle.y);
+        const r = circle.radius * this.gridGap;
+        return x - r > minX && x + r < maxX && y - r > minY && y + r < maxY;
+      });
 
       if (this.inputControl.keys["Shift"]) {
         this.selectedDots = this.selectedDots.concat(selectedDots);
         this.selectedLines = this.selectedLines.concat(selectedLines);
+        this.selectedCircles = this.selectedCircles.concat(selectedCircles);
       } else {
         this.selectedDots = selectedDots;
         this.selectedLines = selectedLines;
+        this.selectedCircles = selectedCircles;
       }
       this.onSelectDots?.(this.selectedDots);
       this.onSelectLines?.(this.selectedLines);
+      this.onSelectCircles?.(this.selectedCircles);
     }
   }
 
@@ -480,6 +518,7 @@ export class Board {
   }
 
   drawLines() {
+    this.ctx.save();
     this.lines.forEach((line) => {
       this.ctx.beginPath();
       this.ctx.moveTo(
@@ -491,9 +530,11 @@ export class Board {
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
     });
+    this.ctx.restore();
   }
 
   drawSelectedLines() {
+    this.ctx.save();
     this.selectedLines.forEach((line) => {
       this.ctx.beginPath();
       this.ctx.moveTo(
@@ -517,5 +558,50 @@ export class Board {
         (this.toVirtualY(line.from.y) + this.toVirtualY(line.to.y)) / 2 - 10,
       );
     });
+    this.ctx.restore();
+  }
+
+  addCircle(circle: Omit<Circle, "id">) {
+    this.circles.push({
+      id: this.seq++,
+      x: circle.x,
+      y: circle.y,
+      radius: circle.radius,
+    });
+  }
+
+  drawCircle() {
+    this.ctx.save();
+    this.circles.forEach((circle) => {
+      this.ctx.beginPath();
+      this.ctx.arc(
+        this.toVirtualX(circle.x),
+        this.toVirtualY(circle.y),
+        circle.radius * this.gridGap,
+        0,
+        Math.PI * 2,
+      );
+      this.ctx.strokeStyle = "white";
+      this.ctx.stroke();
+    });
+    this.ctx.restore();
+  }
+
+  drawSelectedCircles() {
+    this.ctx.save();
+    this.selectedCircles.forEach((circle) => {
+      this.ctx.beginPath();
+      this.ctx.arc(
+        this.toVirtualX(circle.x),
+        this.toVirtualY(circle.y),
+        circle.radius * this.gridGap + 2,
+        0,
+        Math.PI * 2,
+      );
+      this.ctx.strokeStyle = "red";
+
+      this.ctx.stroke();
+    });
+    this.ctx.restore();
   }
 }

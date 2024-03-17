@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Board, Dot, Line } from "./lib/Board";
+import { Board, Circle, Dot, Line } from "./lib/Board";
 import { AnimatePresence, motion } from "framer-motion";
 
 function App() {
@@ -7,6 +7,7 @@ function App() {
   const boardRef = useRef<Board>();
   const [selectedDots, setSelectedDots] = useState<Dot[]>([]);
   const [selectedLines, setSelectedLines] = useState<Line[]>([]);
+  const [selectedCircles, setSelectedCircles] = useState<Circle[]>([]);
 
   useEffect(() => {
     const board = new Board({ element: canvasRef.current! });
@@ -14,6 +15,13 @@ function App() {
 
     board.onSelectDots = setSelectedDots;
     board.onSelectLines = setSelectedLines;
+    board.onSelectCircles = setSelectedCircles;
+
+    board.addCircle({
+      x: 0,
+      y: 0,
+      radius: 5,
+    });
 
     return () => {
       board.cleanup();
@@ -122,6 +130,35 @@ function App() {
                 <button
                   onClick={() => {
                     boardRef.current!.removeLines(selectedLines);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {!!selectedCircles.length && (
+            <motion.div
+              animate={{
+                x: ["10%", "0%"],
+                opacity: [0, 1],
+              }}
+              exit={{
+                x: ["0%", "10%"],
+                opacity: [1, 0],
+              }}
+              id="select-tools"
+              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+            >
+              <h2 className={"text-2xl font-bold mb-4"}>
+                Circles({selectedCircles.length})
+              </h2>
+              <div className={"flex flex-col gap-4"}>
+                <button
+                  onClick={() => {
+                    boardRef.current!.removeCircles(selectedCircles);
                   }}
                 >
                   Remove
