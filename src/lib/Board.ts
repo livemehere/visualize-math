@@ -37,6 +37,8 @@ export class Board {
   };
   updateUIMap: { [key: string]: HTMLElement | undefined };
   dots: Dot[];
+  previewDot?: Dot;
+  previewDotColor: string;
 
   constructor(props: Props) {
     this.inputControl = new InputControl();
@@ -45,6 +47,7 @@ export class Board {
     this.ctx = this.element.getContext("2d")!;
     this.backgroundColor = "rgb(16,16,16)";
     this.gridColor = "rgba(255,255,255,0.09)";
+    this.previewDotColor = "rgba(255,255,255,0.2)";
     this.gridGap = 50;
     this.mouseMode = "draw";
     this.mouse = {
@@ -133,6 +136,7 @@ export class Board {
   handleKeyboard() {
     this.inputControl.onChange(" ", (isDown) => {
       if (isDown) {
+        this.previewDot = undefined;
         this.mouseMode = "move";
         document.body.style.cursor = this.mouse.isDown ? "grabbing" : "grab";
       } else {
@@ -174,6 +178,15 @@ export class Board {
       }
       if (this.mouseMode === "draw") {
         document.body.style.cursor = "default";
+        const realX = this.toRealX(this.mouse.x, true);
+        const realY = this.toRealY(this.mouse.y, true);
+        const { x, y } = this.snapToGrid(realX, realY);
+        this.previewDot = {
+          radius: 5,
+          x,
+          y,
+          color: this.previewDotColor,
+        };
       }
     });
 
@@ -291,5 +304,18 @@ export class Board {
       this.ctx.fillStyle = dot.color;
       this.ctx.fill();
     });
+
+    if (this.previewDot) {
+      this.ctx.beginPath();
+      this.ctx.arc(
+        this.toVirtualX(this.previewDot.x),
+        this.toVirtualY(this.previewDot.y),
+        this.previewDot.radius,
+        0,
+        Math.PI * 2,
+      );
+      this.ctx.fillStyle = this.previewDot.color;
+      this.ctx.fill();
+    }
   }
 }
