@@ -214,7 +214,6 @@ export class Board {
       if (this.mouseMode === "draw") {
         const { x, y } = this.snapToGrid(realX, realY);
         this.addDot({ x, y });
-        console.log(this.dots);
       } else if (this.mouseMode === "select") {
         this.selectBox = {
           x1: realX,
@@ -317,7 +316,7 @@ export class Board {
 
   drawText(text: string, x: number, y: number) {
     this.ctx.save();
-    this.ctx.font = `${Math.max(30 / this.zoom / this.gridGap, 14)}px serif`;
+    this.ctx.font = `${Math.max(20 / this.gridGap / Math.max(this.zoom, 1), 10)}px serif`;
     this.ctx.textAlign = "center";
     this.ctx.fillStyle = "white";
     this.ctx.fillText(text, x, y);
@@ -480,7 +479,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX((dot.x / dot.gridGap) * this.gridGap),
         this.toVirtualY((dot.y / dot.gridGap) * this.gridGap),
-        (dot.radius / dot.gridGap) * this.gridGap + 2,
+        dot.radius + 2,
         0,
         Math.PI * 2,
       );
@@ -488,10 +487,10 @@ export class Board {
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
 
-      this.ctx.font = "14px serif";
+      this.ctx.font = "20px serif";
       this.ctx.fillStyle = "salmon";
       this.ctx.fillText(
-        `(${this.toGridValue(dot.x)},${this.toGridValue(dot.y)})`,
+        `(${this.toGridValue(dot.x).toFixed(1)},${this.toGridValue(dot.y).toFixed(1)})`,
         this.toVirtualX((dot.x / dot.gridGap) * this.gridGap) + 10,
         this.toVirtualY((dot.y / dot.gridGap) * this.gridGap) - 10,
       );
@@ -510,24 +509,32 @@ export class Board {
       const minY = Math.min(y1, y2);
       const maxY = Math.max(y1, y2);
       const selectedDots = this.dots.filter((dot) => {
-        const x = this.toVirtualX(dot.x);
-        const y = this.toVirtualY(dot.y);
+        const x = this.toVirtualX((dot.x / dot.gridGap) * this.gridGap);
+        const y = this.toVirtualY((dot.y / dot.gridGap) * this.gridGap);
         return x > minX && x < maxX && y > minY && y < maxY;
       });
       const selectedLines = this.lines.filter((line) => {
-        const x1 = this.toVirtualX(line.from.x);
-        const y1 = this.toVirtualY(line.from.y);
-        const x2 = this.toVirtualX(line.to.x);
-        const y2 = this.toVirtualY(line.to.y);
+        const x1 = this.toVirtualX(
+          (line.from.x / line.from.gridGap) * this.gridGap,
+        );
+        const y1 = this.toVirtualY(
+          (line.from.y / line.from.gridGap) * this.gridGap,
+        );
+        const x2 = this.toVirtualX(
+          (line.to.x / line.to.gridGap) * this.gridGap,
+        );
+        const y2 = this.toVirtualY(
+          (line.to.y / line.to.gridGap) * this.gridGap,
+        );
         return (
           (x1 > minX && x1 < maxX && y1 > minY && y1 < maxY) ||
           (x2 > minX && x2 < maxX && y2 > minY && y2 < maxY)
         );
       });
       const selectedCircles = this.circles.filter((circle) => {
-        const x = this.toVirtualX(circle.x);
-        const y = this.toVirtualY(circle.y);
-        const r = circle.radius;
+        const x = this.toVirtualX((circle.x / circle.gridGap) * this.gridGap);
+        const y = this.toVirtualY((circle.y / circle.gridGap) * this.gridGap);
+        const r = (circle.radius / circle.gridGap) * this.gridGap;
         return x - r > minX && x + r < maxX && y - r > minY && y + r < maxY;
       });
 
@@ -591,14 +598,14 @@ export class Board {
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
 
-      this.ctx.font = "14px serif";
+      this.ctx.font = "bold 20px serif";
       this.ctx.textAlign = "center";
       this.ctx.fillStyle = "salmon";
       const length = Math.sqrt(
         (line.to.x - line.from.x) ** 2 + (line.to.y - line.from.y) ** 2,
       );
       this.ctx.fillText(
-        `${this.toGridValue(length).toFixed(2)}`,
+        `${this.toGridValue(length).toFixed(1)}`,
         (this.toVirtualX((line.from.x / line.from.gridGap) * this.gridGap) +
           this.toVirtualX((line.to.x / line.to.gridGap) * this.gridGap)) /
           2 +
