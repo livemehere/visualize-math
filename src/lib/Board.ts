@@ -249,7 +249,7 @@ export class Board {
   drawGrid() {
     this.ctx.lineWidth = 1;
 
-    /* 세로줄 */
+    /* vertical */
     for (
       let x = this.pan.x % this.gridGap;
       x < this.virtualWidth;
@@ -268,7 +268,7 @@ export class Board {
       this.drawText(`${realX / this.gridGap}`, x, 14);
     }
 
-    /* 가로줄 */
+    /* horizontal */
     for (
       let y = this.pan.y % this.gridGap;
       y < this.virtualHeight;
