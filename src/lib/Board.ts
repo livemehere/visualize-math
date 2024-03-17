@@ -54,7 +54,7 @@ export class Board {
     this.updateUI();
     this.clear();
     this.ctx.save();
-    this.handleZoom();
+    this.ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
     this.ctx.restore();
   }
@@ -76,10 +76,6 @@ export class Board {
     this.element.style.position = "absolute";
     this.element.style.left = "0";
     this.element.style.top = "0";
-  }
-
-  handleZoom() {
-    this.ctx.scale(this.zoom, this.zoom);
   }
 
   updateUI() {
