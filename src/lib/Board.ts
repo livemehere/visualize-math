@@ -430,7 +430,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX((dot.x / dot.gridGap) * this.gridGap),
         this.toVirtualY((dot.y / dot.gridGap) * this.gridGap),
-        dot.radius,
+        dot.radius * this.gridGap * 0.02,
         0,
         Math.PI * 2,
       );
@@ -479,7 +479,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX((dot.x / dot.gridGap) * this.gridGap),
         this.toVirtualY((dot.y / dot.gridGap) * this.gridGap),
-        dot.radius + 2,
+        dot.radius * this.gridGap * 0.02 + 2,
         0,
         Math.PI * 2,
       );
