@@ -490,7 +490,7 @@ export class Board {
       this.ctx.font = "20px serif";
       this.ctx.fillStyle = "salmon";
       this.ctx.fillText(
-        `(${this.toGridValue(dot.x).toFixed(1)},${this.toGridValue(dot.y).toFixed(1)})`,
+        `(${this.toGridValue((dot.x / dot.gridGap) * this.gridGap).toFixed(1)},${this.toGridValue((dot.y / dot.gridGap) * this.gridGap).toFixed(1)})`,
         this.toVirtualX((dot.x / dot.gridGap) * this.gridGap) + 10,
         this.toVirtualY((dot.y / dot.gridGap) * this.gridGap) - 10,
       );
