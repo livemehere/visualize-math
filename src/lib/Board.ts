@@ -3,8 +3,9 @@ interface Props {
 }
 
 export class Board {
-  element: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  private rafId: number;
+  private element: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
   dpr: number;
   stageWidth: number;
   stageHeight: number;
@@ -24,6 +25,7 @@ export class Board {
     x: number;
     y: number;
   };
+  updateUIMap: { [key: string]: HTMLElement | undefined };
 
   constructor(props: Props) {
     this.element = props.element;
@@ -43,11 +45,12 @@ export class Board {
       x: 0,
       y: 0,
     };
+    this.updateUIMap = {};
 
     this.resize();
     window.addEventListener("resize", this.resize.bind(this));
     this.handleMouse();
-    requestAnimationFrame(this.animate.bind(this));
+    this.rafId = requestAnimationFrame(this.animate.bind(this));
   }
 
   draw() {
@@ -78,28 +81,35 @@ export class Board {
     this.element.style.top = "0";
   }
 
-  updateUI() {
-    const zoomEl = document.getElementById("zoom")!;
-    const zoomText = `Zoom: ${(this.zoom * 100).toFixed(0)}%`;
-    if (zoomEl.innerHTML !== zoomText) {
-      zoomEl.innerHTML = zoomText;
+  syncTextToUI(key: string, text: string) {
+    let cacheEl = this.updateUIMap[key];
+    if (!cacheEl) {
+      const el = document.querySelector(`[data-board-${key}]`);
+      if (el) {
+        this.updateUIMap[key] = el as HTMLElement;
+        cacheEl = el as HTMLElement;
+      }
     }
+    if (cacheEl && cacheEl.innerHTML !== text) {
+      cacheEl.innerHTML = text;
+    }
+  }
 
-    const panEl = document.getElementById("pan")!;
-    const panText = `Pan: ${this.pan.x.toFixed(0)}px, ${this.pan.y.toFixed(
-      0,
-    )}px`;
-    if (panEl.innerHTML !== panText) {
-      panEl.innerHTML = panText;
-    }
+  updateUI() {
+    this.syncTextToUI("zoom", `Zoom: ${(this.zoom * 100).toFixed(0)}%`);
+    this.syncTextToUI(
+      "pan",
+      `Pan: ${this.pan.x.toFixed(0)}px, ${this.pan.y.toFixed(0)}px`,
+    );
   }
 
   cleanup() {
     window.removeEventListener("resize", this.resize.bind(this));
+    window.cancelAnimationFrame(this.rafId);
   }
 
   animate() {
-    window.requestAnimationFrame(this.animate.bind(this));
+    this.rafId = window.requestAnimationFrame(this.animate.bind(this));
     this.draw();
   }
 

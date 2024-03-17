@@ -21,8 +21,27 @@ function App() {
         id="status"
         className={"absolute top-0 left-0 p-4 text-white text-2xl"}
       >
-        <p id="zoom"></p>
-        <p id="pan"></p>
+        <p data-board-zoom></p>
+        <p data-board-pan></p>
+      </div>
+      <div
+        id="tools"
+        className={"absolute bottom-10 left-10 p-4 text-white flex gap-4"}
+      >
+        <button
+          onClick={() => {
+            boardRef.current!.zoom += 0.1;
+          }}
+        >
+          ZOOM +10%
+        </button>
+        <button
+          onClick={() => {
+            boardRef.current!.zoom -= 0.1;
+          }}
+        >
+          ZOOM -10%
+        </button>
       </div>
     </div>
   );
