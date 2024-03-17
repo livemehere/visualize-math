@@ -110,6 +110,9 @@ export class Board {
     window.addEventListener("resize", this.resize.bind(this));
     this.rafId = requestAnimationFrame(this.animate.bind(this));
 
+    this.pan.x = this.virtualWidth / 2;
+    this.pan.y = this.virtualHeight / 2;
+
     this.handleMouse();
     this.handleKeyboard();
   }
