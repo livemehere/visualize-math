@@ -54,6 +54,7 @@ export class Board {
     this.updateUI();
     this.clear();
     this.ctx.save();
+    this.handleZoom();
     this.drawGrid();
     this.ctx.restore();
   }
@@ -75,7 +76,10 @@ export class Board {
     this.element.style.position = "absolute";
     this.element.style.left = "0";
     this.element.style.top = "0";
-    // this.ctx.scale(this.dpr, this.dpr);
+  }
+
+  handleZoom() {
+    this.ctx.scale(this.zoom, this.zoom);
   }
 
   updateUI() {
@@ -137,6 +141,8 @@ export class Board {
       const dir = e.deltaY < 0 ? 1 : -1;
       const mount = dir * 0.1;
       this.zoom += mount;
+      this.pan.x -= Math.round(this.mouse.x * mount);
+      this.pan.y -= Math.round(this.mouse.y * mount);
     });
   }
 
@@ -158,7 +164,8 @@ export class Board {
 
   drawText(text: string, x: number, y: number) {
     this.ctx.save();
-    this.ctx.font = `${10 / this.zoom}px serif`;
+    this.ctx.font = `${Math.max(10 / this.zoom, 14)}px serif`;
+    this.ctx.textAlign = "center";
     this.ctx.fillStyle = "white";
     this.ctx.fillText(text, x, y);
     this.ctx.restore();
