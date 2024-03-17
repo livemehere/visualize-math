@@ -252,7 +252,7 @@ export class Board {
         this.ctx.strokeStyle = "red";
       }
       this.ctx.stroke();
-      this.drawText(`${realX}`, x, 14);
+      this.drawText(`${realX / this.gridGap}`, x, 14);
     }
 
     /* 가로줄 */
@@ -270,7 +270,7 @@ export class Board {
         this.ctx.strokeStyle = "red";
       }
       this.ctx.stroke();
-      this.drawText(`${realY}`, 14, y);
+      this.drawText(`${realY / this.gridGap}`, 14, y);
     }
   }
 
