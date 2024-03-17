@@ -9,6 +9,7 @@ function App() {
   const { pushModal } = useModal();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<Board>();
+  const [gridGap, setGridGap] = useState(50);
   const [selectedDots, setSelectedDots] = useState<Dot[]>([]);
   const [selectedLines, setSelectedLines] = useState<Line[]>([]);
   const [selectedCircles, setSelectedCircles] = useState<Circle[]>([]);
@@ -25,6 +26,10 @@ function App() {
       board.cleanup();
     };
   }, []);
+
+  useEffect(() => {
+    boardRef.current!.gridGap = gridGap;
+  }, [gridGap]);
 
   return (
     <div>
@@ -55,6 +60,12 @@ function App() {
         >
           ZOOM -10%
         </button>
+        <input
+          type="number"
+          value={gridGap}
+          min={15}
+          onChange={(e) => setGridGap(Number(e.target.value))}
+        />
         <button
           onClick={() => {
             boardRef.current!.mouseMode = "select";

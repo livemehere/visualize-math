@@ -4,6 +4,7 @@ export interface Dot {
   id: number;
   x: number;
   y: number;
+  gridGap: number;
   radius: number;
   color: string;
 }
@@ -18,6 +19,7 @@ export interface Circle {
   x: number;
   y: number;
   radius: number;
+  gridGap: number;
   color: string;
 }
 
@@ -82,7 +84,7 @@ export class Board {
     this.backgroundColor = "rgb(16,16,16)";
     this.gridColor = "rgba(255,255,255,0.09)";
     this.previewDotColor = "rgba(255,255,255,0.2)";
-    this.gridGap = 50;
+    this.gridGap = 20;
     this.mouseMode = "draw";
     this.mouse = {
       x: 0,
@@ -212,6 +214,7 @@ export class Board {
       if (this.mouseMode === "draw") {
         const { x, y } = this.snapToGrid(realX, realY);
         this.addDot({ x, y });
+        console.log(this.dots);
       } else if (this.mouseMode === "select") {
         this.selectBox = {
           x1: realX,
@@ -253,6 +256,7 @@ export class Board {
           x,
           y,
           color: this.previewDotColor,
+          gridGap: this.gridGap,
         };
       } else if (this.mouseMode === "select" && this.selectBox) {
         this.selectBox.x2 = realX;
@@ -313,7 +317,7 @@ export class Board {
 
   drawText(text: string, x: number, y: number) {
     this.ctx.save();
-    this.ctx.font = `${Math.max(10 / this.zoom, 14)}px serif`;
+    this.ctx.font = `${Math.max(30 / this.zoom / this.gridGap, 14)}px serif`;
     this.ctx.textAlign = "center";
     this.ctx.fillStyle = "white";
     this.ctx.fillText(text, x, y);
@@ -361,15 +365,28 @@ export class Board {
     }
   }
 
-  addDot(dot: Omit<Dot, "id" | "radius" | "color">, applyGridSize = false) {
+  addDot(
+    dot: Omit<Dot, "id" | "radius" | "color" | "gridGap">,
+    applyGridSize = false,
+  ) {
     const x = applyGridSize ? dot.x * this.gridGap : dot.x;
     const y = applyGridSize ? dot.y * this.gridGap : dot.y;
     const radius = 5;
     const color = "white";
-    this.dots.push({ id: this.seq++, x, y, radius: radius, color });
+    this.dots.push({
+      id: this.seq++,
+      x,
+      y,
+      radius: radius,
+      color,
+      gridGap: this.gridGap,
+    });
   }
 
-  addCircle(circle: Omit<Circle, "id" | "color">, applyGridSize = false) {
+  addCircle(
+    circle: Omit<Circle, "id" | "color" | "gridGap">,
+    applyGridSize = false,
+  ) {
     const x = applyGridSize ? circle.x * this.gridGap : circle.x;
     const y = applyGridSize ? circle.y * this.gridGap : circle.y;
     const radius = applyGridSize ? circle.radius * this.gridGap : circle.radius;
@@ -379,12 +396,14 @@ export class Board {
       y,
       radius,
       color: "white",
+      gridGap: this.gridGap,
     });
   }
 
   removeDots(dots: Dot[]) {
     this.dots = this.dots.filter((dot) => !dots.includes(dot));
     this.selectedDots = this.selectedDots.filter((dot) => !dots.includes(dot));
+    this.onSelectDots?.(this.selectedDots);
   }
 
   removeLines(lines: Line[]) {
@@ -394,6 +413,7 @@ export class Board {
     this.selectedLines = this.selectedLines.filter(
       (line) => !lines.some((l) => l.from === line.from && l.to === line.to),
     );
+    this.onSelectLines?.(this.selectedLines);
   }
 
   removeCircles(circles: Circle[]) {
@@ -401,6 +421,7 @@ export class Board {
     this.selectedCircles = this.selectedCircles.filter(
       (circle) => !circles.includes(circle),
     );
+    this.onSelectCircles?.(this.selectedCircles);
   }
 
   drawDots() {
@@ -408,8 +429,8 @@ export class Board {
     this.dots.forEach((dot) => {
       this.ctx.beginPath();
       this.ctx.arc(
-        this.toVirtualX(dot.x),
-        this.toVirtualY(dot.y),
+        this.toVirtualX((dot.x / dot.gridGap) * this.gridGap),
+        this.toVirtualY((dot.y / dot.gridGap) * this.gridGap),
         dot.radius,
         0,
         Math.PI * 2,
@@ -457,9 +478,9 @@ export class Board {
     this.selectedDots.forEach((dot) => {
       this.ctx.beginPath();
       this.ctx.arc(
-        this.toVirtualX(dot.x),
-        this.toVirtualY(dot.y),
-        dot.radius + 2,
+        this.toVirtualX((dot.x / dot.gridGap) * this.gridGap),
+        this.toVirtualY((dot.y / dot.gridGap) * this.gridGap),
+        (dot.radius / dot.gridGap) * this.gridGap + 2,
         0,
         Math.PI * 2,
       );
@@ -471,8 +492,8 @@ export class Board {
       this.ctx.fillStyle = "salmon";
       this.ctx.fillText(
         `(${this.toGridValue(dot.x)},${this.toGridValue(dot.y)})`,
-        this.toVirtualX(dot.x) + 10,
-        this.toVirtualY(dot.y) - 10,
+        this.toVirtualX((dot.x / dot.gridGap) * this.gridGap) + 10,
+        this.toVirtualY((dot.y / dot.gridGap) * this.gridGap) - 10,
       );
     });
     this.ctx.restore();
@@ -540,10 +561,13 @@ export class Board {
     this.lines.forEach((line) => {
       this.ctx.beginPath();
       this.ctx.moveTo(
-        this.toVirtualX(line.from.x),
-        this.toVirtualY(line.from.y),
+        this.toVirtualX((line.from.x / line.from.gridGap) * this.gridGap),
+        this.toVirtualY((line.from.y / line.from.gridGap) * this.gridGap),
       );
-      this.ctx.lineTo(this.toVirtualX(line.to.x), this.toVirtualY(line.to.y));
+      this.ctx.lineTo(
+        this.toVirtualX((line.to.x / line.to.gridGap) * this.gridGap),
+        this.toVirtualY((line.to.y / line.to.gridGap) * this.gridGap),
+      );
       this.ctx.strokeStyle = "white";
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
@@ -556,10 +580,13 @@ export class Board {
     this.selectedLines.forEach((line) => {
       this.ctx.beginPath();
       this.ctx.moveTo(
-        this.toVirtualX(line.from.x),
-        this.toVirtualY(line.from.y),
+        this.toVirtualX((line.from.x / line.from.gridGap) * this.gridGap),
+        this.toVirtualY((line.from.y / line.from.gridGap) * this.gridGap),
       );
-      this.ctx.lineTo(this.toVirtualX(line.to.x), this.toVirtualY(line.to.y));
+      this.ctx.lineTo(
+        this.toVirtualX((line.to.x / line.to.gridGap) * this.gridGap),
+        this.toVirtualY((line.to.y / line.to.gridGap) * this.gridGap),
+      );
       this.ctx.strokeStyle = "red";
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
@@ -572,8 +599,14 @@ export class Board {
       );
       this.ctx.fillText(
         `${this.toGridValue(length).toFixed(2)}`,
-        (this.toVirtualX(line.from.x) + this.toVirtualX(line.to.x)) / 2 + 10,
-        (this.toVirtualY(line.from.y) + this.toVirtualY(line.to.y)) / 2 - 10,
+        (this.toVirtualX((line.from.x / line.from.gridGap) * this.gridGap) +
+          this.toVirtualX((line.to.x / line.to.gridGap) * this.gridGap)) /
+          2 +
+          10,
+        (this.toVirtualY((line.from.y / line.from.gridGap) * this.gridGap) +
+          this.toVirtualY((line.to.y / line.to.gridGap) * this.gridGap)) /
+          2 -
+          10,
       );
     });
     this.ctx.restore();
@@ -584,9 +617,9 @@ export class Board {
     this.circles.forEach((circle) => {
       this.ctx.beginPath();
       this.ctx.arc(
-        this.toVirtualX(circle.x),
-        this.toVirtualY(circle.y),
-        circle.radius,
+        this.toVirtualX((circle.x / circle.gridGap) * this.gridGap),
+        this.toVirtualY((circle.y / circle.gridGap) * this.gridGap),
+        (circle.radius / circle.gridGap) * this.gridGap,
         0,
         Math.PI * 2,
       );
@@ -601,9 +634,9 @@ export class Board {
     this.selectedCircles.forEach((circle) => {
       this.ctx.beginPath();
       this.ctx.arc(
-        this.toVirtualX(circle.x),
-        this.toVirtualY(circle.y),
-        circle.radius + 2,
+        this.toVirtualX((circle.x / circle.gridGap) * this.gridGap),
+        this.toVirtualY((circle.y / circle.gridGap) * this.gridGap),
+        (circle.radius / circle.gridGap) * this.gridGap + 2,
         0,
         Math.PI * 2,
       );
