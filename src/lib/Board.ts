@@ -54,9 +54,7 @@ export class Board {
     this.updateUI();
     this.clear();
     this.ctx.save();
-    this.ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
-    this.drawAxes();
     this.ctx.restore();
   }
 
@@ -81,12 +79,19 @@ export class Board {
   }
 
   updateUI() {
-    document.getElementById("zoom")!.innerHTML = `Zoom: ${this.zoom.toFixed(
-      2,
-    )}`;
-    document.getElementById("pan")!.innerHTML = `Pan: ${this.pan.x.toFixed(
-      2,
-    )}, ${this.pan.y.toFixed(2)}`;
+    const zoomEl = document.getElementById("zoom")!;
+    const zoomText = `Zoom: ${this.zoom.toFixed(2)}`;
+    if (zoomEl.innerHTML !== zoomText) {
+      zoomEl.innerHTML = zoomText;
+    }
+
+    const panEl = document.getElementById("pan")!;
+    const panText = `Pan: ${this.pan.x.toFixed(0)}px, ${this.pan.y.toFixed(
+      0,
+    )}px`;
+    if (panEl.innerHTML !== panText) {
+      panEl.innerHTML = panText;
+    }
   }
 
   cleanup() {
@@ -122,8 +127,8 @@ export class Board {
       this.mouse.x = e.clientX - rect.left;
       this.mouse.y = e.clientY - rect.top;
       if (this.mouse.isDown && this.mouseMode === "move") {
-        this.pan.x += e.movementX;
-        this.pan.y += e.movementY;
+        this.pan.x += Math.round(e.movementX / this.zoom);
+        this.pan.y += Math.round(e.movementY / this.zoom);
       }
     });
 
@@ -135,33 +140,68 @@ export class Board {
     });
   }
 
-  drawAxes() {
-    // TODO: Draw axes
+  toRealX(xVirtual: number) {
+    return xVirtual - this.pan.x;
+  }
+
+  toRealY(yVirtual: number) {
+    return yVirtual - this.pan.y;
+  }
+
+  get virtualWidth() {
+    return this.stageWidth / this.zoom;
+  }
+
+  get virtualHeight() {
+    return this.stageHeight / this.zoom;
+  }
+
+  drawText(text: string, x: number, y: number) {
+    this.ctx.save();
+    this.ctx.font = `${10 / this.zoom}px serif`;
+    this.ctx.fillStyle = "white";
+    this.ctx.fillText(text, x, y);
+    this.ctx.restore();
   }
 
   drawGrid() {
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = this.gridColor;
     this.ctx.lineWidth = 1;
 
+    /* 세로줄 */
     for (
-      let i = this.pan.x % this.gridGap;
-      i < this.stageWidth;
-      i += this.gridGap
+      let x = this.pan.x % this.gridGap;
+      x < this.virtualWidth;
+      x += this.gridGap
     ) {
-      this.ctx.moveTo(i, 0);
-      this.ctx.lineTo(i, this.stageHeight);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, this.virtualHeight);
+      this.ctx.strokeStyle = this.gridColor;
+
+      const realX = this.toRealX(x);
+      if (realX === 0) {
+        this.ctx.strokeStyle = "red";
+      }
+      this.ctx.stroke();
+      this.drawText(`${realX}`, x, 14);
     }
 
+    /* 가로줄 */
     for (
-      let i = this.pan.y % this.gridGap;
-      i < this.stageHeight;
-      i += this.gridGap
+      let y = this.pan.y % this.gridGap;
+      y < this.virtualHeight;
+      y += this.gridGap
     ) {
-      this.ctx.moveTo(0, i);
-      this.ctx.lineTo(this.stageWidth, i);
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(this.virtualWidth, y);
+      this.ctx.strokeStyle = this.gridColor;
+      const realY = this.toRealY(y);
+      if (realY === 0) {
+        this.ctx.strokeStyle = "red";
+      }
+      this.ctx.stroke();
+      this.drawText(`${realY}`, 14, y);
     }
-
-    this.ctx.stroke();
   }
 }
