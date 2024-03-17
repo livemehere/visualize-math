@@ -343,6 +343,11 @@ export class Board {
     this.dots.push({ id: this.seq++, x, y, radius, color });
   }
 
+  removeDots(dots: Dot[]) {
+    this.dots = this.dots.filter((dot) => !dots.includes(dot));
+    this.selectedDots = this.selectedDots.filter((dot) => !dots.includes(dot));
+  }
+
   drawDots() {
     this.dots.forEach((dot) => {
       this.ctx.beginPath();

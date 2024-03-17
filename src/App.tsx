@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Board, Dot } from "./lib/Board";
+import { AnimatePresence, motion } from "framer-motion";
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,23 +62,42 @@ function App() {
           Draw Mode
         </button>
       </div>
-      {!!selectedDots.length && (
-        <div
-          id="select-tools"
-          className={
-            "absolute top-10 right-10 p-4 bg-neutral-900 text-white rounded w-[300px]"
-          }
-        >
-          <h2 className={"text-2xl font-bold mb-4"}>Select actions</h2>
-          <button
-            onClick={() => {
-              boardRef.current!.connectDots(selectedDots);
+      <AnimatePresence>
+        {!!selectedDots.length && (
+          <motion.div
+            animate={{
+              x: ["10%", "0%"],
+              opacity: [0, 1],
             }}
+            exit={{
+              x: ["0%", "10%"],
+              opacity: [1, 0],
+            }}
+            id="select-tools"
+            className={
+              "absolute top-10 right-10 p-4 bg-neutral-900 text-white rounded w-[300px]"
+            }
           >
-            연결하기
-          </button>
-        </div>
-      )}
+            <h2 className={"text-2xl font-bold mb-4"}>Select actions</h2>
+            <div className={"flex flex-col gap-4"}>
+              <button
+                onClick={() => {
+                  boardRef.current!.connectDots(selectedDots);
+                }}
+              >
+                Connect
+              </button>
+              <button
+                onClick={() => {
+                  boardRef.current!.removeDots(selectedDots);
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
