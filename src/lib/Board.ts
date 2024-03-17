@@ -4,7 +4,7 @@ export interface Dot {
   id: number;
   x: number;
   y: number;
-  radius: number;
+  absoluteRadius: number;
   color: string;
 }
 
@@ -248,7 +248,7 @@ export class Board {
         const { x, y } = this.snapToGrid(realX, realY);
         this.previewDot = {
           id: -1,
-          radius: 5,
+          absoluteRadius: 5,
           x,
           y,
           color: this.previewDotColor,
@@ -361,7 +361,8 @@ export class Board {
   }
 
   addDot(x: number, y: number, radius: number, color: string) {
-    this.dots.push({ id: this.seq++, x, y, radius, color });
+    this.dots.push({ id: this.seq++, x, y, absoluteRadius: radius, color });
+    console.log(this.dots);
   }
 
   removeDots(dots: Dot[]) {
@@ -392,7 +393,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX(dot.x),
         this.toVirtualY(dot.y),
-        dot.radius,
+        dot.absoluteRadius,
         0,
         Math.PI * 2,
       );
@@ -409,7 +410,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX(this.previewDot.x),
         this.toVirtualY(this.previewDot.y),
-        this.previewDot.radius,
+        this.previewDot.absoluteRadius,
         0,
         Math.PI * 2,
       );
@@ -441,7 +442,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX(dot.x),
         this.toVirtualY(dot.y),
-        dot.radius + 2,
+        dot.absoluteRadius + 2,
         0,
         Math.PI * 2,
       );
@@ -488,7 +489,7 @@ export class Board {
       const selectedCircles = this.circles.filter((circle) => {
         const x = this.toVirtualX(circle.x);
         const y = this.toVirtualY(circle.y);
-        const r = circle.radius * this.gridGap;
+        const r = circle.radius;
         return x - r > minX && x + r < maxX && y - r > minY && y + r < maxY;
       });
 
@@ -564,10 +565,11 @@ export class Board {
   addCircle(circle: Omit<Circle, "id">) {
     this.circles.push({
       id: this.seq++,
-      x: circle.x,
-      y: circle.y,
-      radius: circle.radius,
+      x: circle.x * this.gridGap,
+      y: circle.y * this.gridGap,
+      radius: circle.radius * this.gridGap,
     });
+    console.log(this.circles);
   }
 
   drawCircle() {
@@ -577,7 +579,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX(circle.x),
         this.toVirtualY(circle.y),
-        circle.radius * this.gridGap,
+        circle.radius,
         0,
         Math.PI * 2,
       );
@@ -594,7 +596,7 @@ export class Board {
       this.ctx.arc(
         this.toVirtualX(circle.x),
         this.toVirtualY(circle.y),
-        circle.radius * this.gridGap + 2,
+        circle.radius + 2,
         0,
         Math.PI * 2,
       );

@@ -18,8 +18,8 @@ function App() {
     board.onSelectCircles = setSelectedCircles;
 
     board.addCircle({
-      x: 0,
-      y: 0,
+      x: 10,
+      y: 10,
       radius: 5,
     });
 
@@ -167,6 +167,22 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+      <div
+        id="create-tools"
+        className={
+          "p-4 bg-neutral-900 text-white rounded w-[300px] absolute bottom-10 right-10"
+        }
+      >
+        <div className={"flex flex-col gap-4"}>
+          <button
+            onClick={() => {
+              boardRef.current!.removeCircles(selectedCircles);
+            }}
+          >
+            Add Circle
+          </button>
+        </div>
       </div>
     </div>
   );
