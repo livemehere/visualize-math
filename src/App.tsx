@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Board, Dot } from "./lib/Board";
+import { Board, Dot, Line } from "./lib/Board";
 import { AnimatePresence, motion } from "framer-motion";
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<Board>();
   const [selectedDots, setSelectedDots] = useState<Dot[]>([]);
+  const [selectedLines, setSelectedLines] = useState<Line[]>([]);
 
   useEffect(() => {
     const board = new Board({ element: canvasRef.current! });
     boardRef.current = board;
 
     board.onSelectDots = setSelectedDots;
+    board.onSelectLines = setSelectedLines;
 
     return () => {
       board.cleanup();
@@ -53,7 +55,7 @@ function App() {
           }}
         >
           Select Mode
-        </button>{" "}
+        </button>
         <button
           onClick={() => {
             boardRef.current!.mouseMode = "draw";
@@ -62,42 +64,73 @@ function App() {
           Draw Mode
         </button>
       </div>
-      <AnimatePresence>
-        {!!selectedDots.length && (
-          <motion.div
-            animate={{
-              x: ["10%", "0%"],
-              opacity: [0, 1],
-            }}
-            exit={{
-              x: ["0%", "10%"],
-              opacity: [1, 0],
-            }}
-            id="select-tools"
-            className={
-              "absolute top-10 right-10 p-4 bg-neutral-900 text-white rounded w-[300px]"
-            }
-          >
-            <h2 className={"text-2xl font-bold mb-4"}>Select actions</h2>
-            <div className={"flex flex-col gap-4"}>
-              <button
-                onClick={() => {
-                  boardRef.current!.connectDots(selectedDots);
-                }}
-              >
-                Connect
-              </button>
-              <button
-                onClick={() => {
-                  boardRef.current!.removeDots(selectedDots);
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={"absolute top-10 right-10 flex flex-col gap-4"}>
+        <AnimatePresence>
+          {!!selectedDots.length && (
+            <motion.div
+              animate={{
+                x: ["10%", "0%"],
+                opacity: [0, 1],
+              }}
+              exit={{
+                x: ["0%", "10%"],
+                opacity: [1, 0],
+              }}
+              id="select-tools"
+              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+            >
+              <h2 className={"text-2xl font-bold mb-4"}>
+                Dots({selectedDots.length})
+              </h2>
+              <div className={"flex flex-col gap-4"}>
+                <button
+                  onClick={() => {
+                    boardRef.current!.connectDots(selectedDots);
+                  }}
+                >
+                  Connect
+                </button>
+                <button
+                  onClick={() => {
+                    boardRef.current!.removeDots(selectedDots);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {!!selectedLines.length && (
+            <motion.div
+              animate={{
+                x: ["10%", "0%"],
+                opacity: [0, 1],
+              }}
+              exit={{
+                x: ["0%", "10%"],
+                opacity: [1, 0],
+              }}
+              id="select-tools"
+              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+            >
+              <h2 className={"text-2xl font-bold mb-4"}>
+                Lines({selectedLines.length})
+              </h2>
+              <div className={"flex flex-col gap-4"}>
+                <button
+                  onClick={() => {
+                    boardRef.current!.removeLines(selectedLines);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

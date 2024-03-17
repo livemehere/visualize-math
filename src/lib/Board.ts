@@ -8,6 +8,11 @@ export interface Dot {
   color: string;
 }
 
+export interface Line {
+  from: Dot;
+  to: Dot;
+}
+
 type MouseMode = "move" | "draw" | "select";
 
 interface Props {
@@ -43,10 +48,8 @@ export class Board {
   updateUIMap: { [key: string]: HTMLElement | undefined };
   dots: Dot[];
   selectedDots: Dot[];
-  lines: {
-    from: Dot;
-    to: Dot;
-  }[];
+  lines: Line[];
+  selectedLines: Line[];
   previewDot?: Dot;
   previewDotColor: string;
   selectBox?: {
@@ -56,7 +59,9 @@ export class Board {
     y2: number;
   };
 
+  /* from outside of class */
   onSelectDots?: (dots: Dot[]) => void;
+  onSelectLines?: (lines: Line[]) => void;
 
   constructor(props: Props) {
     this.inputControl = new InputControl();
@@ -83,6 +88,7 @@ export class Board {
     this.dots = [];
     this.lines = [];
     this.selectedDots = [];
+    this.selectedLines = [];
     this.onSelectDots = props.onSelectDots;
 
     this.resize();
@@ -100,6 +106,7 @@ export class Board {
     this.ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
     this.drawPreviewDot();
+    this.drawSelectedLines();
     this.drawLines();
     this.drawDots();
     this.drawSelectBox();
@@ -205,7 +212,7 @@ export class Board {
       if (this.mouseMode === "move") {
         document.body.style.cursor = "grab";
       } else if (this.mouseMode === "select") {
-        this.updateSelectedDots();
+        this.updateSelected();
         this.selectBox = undefined;
       }
     });
@@ -348,6 +355,15 @@ export class Board {
     this.selectedDots = this.selectedDots.filter((dot) => !dots.includes(dot));
   }
 
+  removeLines(lines: Line[]) {
+    this.lines = this.lines.filter(
+      (line) => !lines.some((l) => l.from === line.from && l.to === line.to),
+    );
+    this.selectedLines = this.selectedLines.filter(
+      (line) => !lines.some((l) => l.from === line.from && l.to === line.to),
+    );
+  }
+
   drawDots() {
     this.dots.forEach((dot) => {
       this.ctx.beginPath();
@@ -408,14 +424,14 @@ export class Board {
       this.ctx.font = "14px serif";
       this.ctx.fillStyle = "salmon";
       this.ctx.fillText(
-        `${dot.id}:(${this.toGridValue(dot.x)},${this.toGridValue(dot.y)})`,
+        `(${this.toGridValue(dot.x)},${this.toGridValue(dot.y)})`,
         this.toVirtualX(dot.x) + 10,
         this.toVirtualY(dot.y) - 10,
       );
     });
   }
 
-  updateSelectedDots() {
+  updateSelected() {
     if (this.selectBox) {
       const x1 = this.toVirtualX(this.selectBox.x1);
       const y1 = this.toVirtualY(this.selectBox.y1);
@@ -425,17 +441,31 @@ export class Board {
       const maxX = Math.max(x1, x2);
       const minY = Math.min(y1, y2);
       const maxY = Math.max(y1, y2);
-      const selected = this.dots.filter((dot) => {
+      const selectedDots = this.dots.filter((dot) => {
         const x = this.toVirtualX(dot.x);
         const y = this.toVirtualY(dot.y);
         return x > minX && x < maxX && y > minY && y < maxY;
       });
+      const selectedLines = this.lines.filter((line) => {
+        const x1 = this.toVirtualX(line.from.x);
+        const y1 = this.toVirtualY(line.from.y);
+        const x2 = this.toVirtualX(line.to.x);
+        const y2 = this.toVirtualY(line.to.y);
+        return (
+          (x1 > minX && x1 < maxX && y1 > minY && y1 < maxY) ||
+          (x2 > minX && x2 < maxX && y2 > minY && y2 < maxY)
+        );
+      });
+
       if (this.inputControl.keys["Shift"]) {
-        this.selectedDots = this.selectedDots.concat(selected);
+        this.selectedDots = this.selectedDots.concat(selectedDots);
+        this.selectedLines = this.selectedLines.concat(selectedLines);
       } else {
-        this.selectedDots = selected;
+        this.selectedDots = selectedDots;
+        this.selectedLines = selectedLines;
       }
       this.onSelectDots?.(this.selectedDots);
+      this.onSelectLines?.(this.selectedLines);
     }
   }
 
@@ -460,6 +490,32 @@ export class Board {
       this.ctx.strokeStyle = "white";
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
+    });
+  }
+
+  drawSelectedLines() {
+    this.selectedLines.forEach((line) => {
+      this.ctx.beginPath();
+      this.ctx.moveTo(
+        this.toVirtualX(line.from.x),
+        this.toVirtualY(line.from.y),
+      );
+      this.ctx.lineTo(this.toVirtualX(line.to.x), this.toVirtualY(line.to.y));
+      this.ctx.strokeStyle = "red";
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
+
+      this.ctx.font = "14px serif";
+      this.ctx.textAlign = "center";
+      this.ctx.fillStyle = "salmon";
+      const length = Math.sqrt(
+        (line.to.x - line.from.x) ** 2 + (line.to.y - line.from.y) ** 2,
+      );
+      this.ctx.fillText(
+        `${this.toGridValue(length).toFixed(2)}`,
+        (this.toVirtualX(line.from.x) + this.toVirtualX(line.to.x)) / 2 + 10,
+        (this.toVirtualY(line.from.y) + this.toVirtualY(line.to.y)) / 2 - 10,
+      );
     });
   }
 }
