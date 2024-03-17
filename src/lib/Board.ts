@@ -100,10 +100,10 @@ export class Board {
     this.ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
     this.drawPreviewDot();
+    this.drawLines();
     this.drawDots();
     this.drawSelectBox();
-    this.drawSelectedDotOutline();
-    this.drawLines();
+    this.drawSelectedDots();
     this.ctx.restore();
   }
 
@@ -250,6 +250,10 @@ export class Board {
     });
   }
 
+  toGridValue(value: number) {
+    return value / this.gridGap;
+  }
+
   toRealX(xVirtual: number, applyZoom = false) {
     if (applyZoom) return xVirtual / this.zoom - this.pan.x;
     return xVirtual - this.pan.x;
@@ -313,7 +317,7 @@ export class Board {
         this.ctx.strokeStyle = "red";
       }
       this.ctx.stroke();
-      this.drawText(`${realX / this.gridGap}`, x, 14);
+      this.drawText(`${this.toGridValue(realX)}`, x, 14);
     }
 
     /* horizontal */
@@ -331,7 +335,7 @@ export class Board {
         this.ctx.strokeStyle = "red";
       }
       this.ctx.stroke();
-      this.drawText(`${realY / this.gridGap}`, 14, y);
+      this.drawText(`${this.toGridValue(realY)}`, 14, y);
     }
   }
 
@@ -382,7 +386,7 @@ export class Board {
     }
   }
 
-  drawSelectedDotOutline() {
+  drawSelectedDots() {
     this.selectedDots.forEach((dot) => {
       this.ctx.beginPath();
       this.ctx.arc(
@@ -395,6 +399,14 @@ export class Board {
       this.ctx.strokeStyle = "red";
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
+
+      this.ctx.font = "14px serif";
+      this.ctx.fillStyle = "salmon";
+      this.ctx.fillText(
+        `${dot.id}:(${this.toGridValue(dot.x)},${this.toGridValue(dot.y)})`,
+        this.toVirtualX(dot.x) + 10,
+        this.toVirtualY(dot.y) - 10,
+      );
     });
   }
 
