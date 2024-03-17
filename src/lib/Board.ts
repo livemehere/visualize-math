@@ -420,11 +420,16 @@ export class Board {
       const maxX = Math.max(x1, x2);
       const minY = Math.min(y1, y2);
       const maxY = Math.max(y1, y2);
-      this.selectedDots = this.dots.filter((dot) => {
+      const selected = this.dots.filter((dot) => {
         const x = this.toVirtualX(dot.x);
         const y = this.toVirtualY(dot.y);
         return x > minX && x < maxX && y > minY && y < maxY;
       });
+      if (this.inputControl.keys["Shift"]) {
+        this.selectedDots = this.selectedDots.concat(selected);
+      } else {
+        this.selectedDots = selected;
+      }
       this.onSelectDots?.(this.selectedDots);
     }
   }
