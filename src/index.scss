@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+button {
+    @apply bg-neutral-700 text-white font-bold py-2 px-4 rounded hover:bg-neutral-600;
+}
+
+input {
+    @apply bg-neutral-800 p-2 rounded text-neutral-100;
+}
+
+#modal-root {
+    z-index: 999;
+}
+
+.common-modal {
+    @apply bg-neutral-900 text-white flex flex-col rounded p-6 w-[500px];
+
+    label {
+        @apply my-2;
+        > span {
+            @apply font-bold;
+        }
+        input {
+            @apply w-full;
+        }
+    }
+
+    button {
+        @apply mt-4;
+    }
+}

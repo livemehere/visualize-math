@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Board, Circle, Dot, Line } from "./lib/Board";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModal } from "async-modal-react";
+import AddCircleModal, { CircleModalResult } from "./modals/AddCircleModal";
 
 function App() {
+  const { pushModal } = useModal();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<Board>();
   const [selectedDots, setSelectedDots] = useState<Dot[]>([]);
@@ -16,12 +19,6 @@ function App() {
     board.onSelectDots = setSelectedDots;
     board.onSelectLines = setSelectedLines;
     board.onSelectCircles = setSelectedCircles;
-
-    board.addCircle({
-      x: 10,
-      y: 10,
-      radius: 5,
-    });
 
     return () => {
       board.cleanup();
@@ -176,8 +173,15 @@ function App() {
       >
         <div className={"flex flex-col gap-4"}>
           <button
-            onClick={() => {
-              boardRef.current!.removeCircles(selectedCircles);
+            onClick={async () => {
+              try {
+                const res = await pushModal<CircleModalResult>(AddCircleModal);
+                if (res) {
+                  boardRef.current!.addCircle(res, true);
+                }
+              } catch (e) {
+                console.error(e);
+              }
             }}
           >
             Add Circle
