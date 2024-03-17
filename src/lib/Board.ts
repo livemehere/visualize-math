@@ -211,7 +211,7 @@ export class Board {
       const realY = this.toRealY(this.mouse.y, true);
       if (this.mouseMode === "draw") {
         const { x, y } = this.snapToGrid(realX, realY);
-        this.addDot({ x, y, color: "white" });
+        this.addDot({ x, y });
       } else if (this.mouseMode === "select") {
         this.selectBox = {
           x1: realX,
@@ -361,11 +361,11 @@ export class Board {
     }
   }
 
-  addDot(dot: Omit<Dot, "id" | "radius">, applyGridSize = false) {
+  addDot(dot: Omit<Dot, "id" | "radius" | "color">, applyGridSize = false) {
     const x = applyGridSize ? dot.x * this.gridGap : dot.x;
     const y = applyGridSize ? dot.y * this.gridGap : dot.y;
     const radius = 5;
-    const color = dot.color;
+    const color = "white";
     this.dots.push({ id: this.seq++, x, y, radius: radius, color });
   }
 

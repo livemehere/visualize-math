@@ -3,31 +3,35 @@
 @tailwind utilities;
 
 button {
-    @apply bg-neutral-700 text-white font-bold py-2 px-4 rounded hover:bg-neutral-600;
+  @apply rounded bg-neutral-700 px-4 py-2 font-bold text-white hover:bg-neutral-600;
 }
 
 input {
-    @apply bg-neutral-800 p-2 rounded text-neutral-100;
+  @apply rounded bg-neutral-800 p-2 text-neutral-100;
 }
 
 #modal-root {
-    z-index: 999;
+  z-index: 999;
 }
 
 .common-modal {
-    @apply bg-neutral-900 text-white flex flex-col rounded p-6 w-[500px];
+  @apply flex w-[500px] flex-col  rounded bg-neutral-900 p-6 text-white;
 
-    label {
-        @apply my-2;
-        > span {
-            @apply font-bold;
-        }
-        input {
-            @apply w-full;
-        }
-    }
+  h2 {
+    @apply text-center text-2xl font-bold;
+  }
 
-    button {
-        @apply mt-4;
+  label {
+    @apply my-2;
+    > span {
+      @apply font-bold;
     }
+    input {
+      @apply w-full;
+    }
+  }
+
+  button {
+    @apply mt-4;
+  }
 }

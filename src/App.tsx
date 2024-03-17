@@ -3,6 +3,7 @@ import { Board, Circle, Dot, Line } from "./lib/Board";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "async-modal-react";
 import AddCircleModal, { CircleModalResult } from "./modals/AddCircleModal";
+import AddDotModal, { DotModalResult } from "./modals/AddDotModal";
 
 function App() {
   const { pushModal } = useModal();
@@ -30,7 +31,7 @@ function App() {
       <canvas ref={canvasRef}></canvas>
       <div
         id="status"
-        className={"absolute top-0 left-0 p-4 text-white text-2xl"}
+        className={"absolute left-0 top-0 p-4 text-2xl text-white"}
       >
         <p data-board-zoom></p>
         <p data-board-pan></p>
@@ -38,7 +39,7 @@ function App() {
       </div>
       <div
         id="tools"
-        className={"absolute bottom-10 left-10 p-4 text-white flex gap-4"}
+        className={"absolute bottom-10 left-10 flex gap-4 p-4 text-white"}
       >
         <button
           onClick={() => {
@@ -69,7 +70,7 @@ function App() {
           Draw Mode
         </button>
       </div>
-      <div className={"absolute top-10 right-10 flex flex-col gap-4"}>
+      <div className={"absolute right-10 top-10 flex flex-col gap-4"}>
         <AnimatePresence>
           {!!selectedDots.length && (
             <motion.div
@@ -82,9 +83,9 @@ function App() {
                 opacity: [1, 0],
               }}
               id="select-tools"
-              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+              className={"w-[300px] rounded bg-neutral-900 p-4 text-white"}
             >
-              <h2 className={"text-2xl font-bold mb-4"}>
+              <h2 className={"mb-4 text-2xl font-bold"}>
                 Dots({selectedDots.length})
               </h2>
               <div className={"flex flex-col gap-4"}>
@@ -118,9 +119,9 @@ function App() {
                 opacity: [1, 0],
               }}
               id="select-tools"
-              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+              className={"w-[300px] rounded bg-neutral-900 p-4 text-white"}
             >
-              <h2 className={"text-2xl font-bold mb-4"}>
+              <h2 className={"mb-4 text-2xl font-bold"}>
                 Lines({selectedLines.length})
               </h2>
               <div className={"flex flex-col gap-4"}>
@@ -147,9 +148,9 @@ function App() {
                 opacity: [1, 0],
               }}
               id="select-tools"
-              className={"p-4 bg-neutral-900 text-white rounded w-[300px]"}
+              className={"w-[300px] rounded bg-neutral-900 p-4 text-white"}
             >
-              <h2 className={"text-2xl font-bold mb-4"}>
+              <h2 className={"mb-4 text-2xl font-bold"}>
                 Circles({selectedCircles.length})
               </h2>
               <div className={"flex flex-col gap-4"}>
@@ -168,7 +169,7 @@ function App() {
       <div
         id="create-tools"
         className={
-          "p-4 bg-neutral-900 text-white rounded w-[300px] absolute bottom-10 right-10"
+          "absolute bottom-10 right-10 w-[300px] rounded bg-neutral-900 p-4 text-white"
         }
       >
         <div className={"flex flex-col gap-4"}>
@@ -185,6 +186,20 @@ function App() {
             }}
           >
             Add Circle
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await pushModal<DotModalResult>(AddDotModal);
+                if (res) {
+                  boardRef.current!.addDot(res, true);
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+          >
+            Add Dot
           </button>
         </div>
       </div>
