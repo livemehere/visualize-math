@@ -80,7 +80,7 @@ export class Board {
 
   updateUI() {
     const zoomEl = document.getElementById("zoom")!;
-    const zoomText = `Zoom: ${this.zoom.toFixed(2)}`;
+    const zoomText = `Zoom: ${(this.zoom * 100).toFixed(0)}%`;
     if (zoomEl.innerHTML !== zoomText) {
       zoomEl.innerHTML = zoomText;
     }
@@ -136,9 +136,11 @@ export class Board {
       e.preventDefault();
       const dir = e.deltaY < 0 ? 1 : -1;
       const mount = dir * 0.1;
-      this.zoom += mount;
-      this.pan.x -= Math.round(this.mouse.x * mount);
-      this.pan.y -= Math.round(this.mouse.y * mount);
+      this.zoom = Math.max(0.5, this.zoom + mount);
+      if (this.zoom > 0.5) {
+        this.pan.x -= Math.round(this.mouse.x * mount);
+        this.pan.y -= Math.round(this.mouse.y * mount);
+      }
     });
   }
 
