@@ -2,6 +2,8 @@
 
 2 Dimension Math Visualization website.
 
+[DEMO](https://livemehere.github.io/visualize-math/)
+
 ![screen-shot1.png](docs/screen-shot1.png)
 
 ## Features
