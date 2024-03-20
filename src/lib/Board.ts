@@ -202,6 +202,18 @@ export class Board {
         document.body.style.cursor = "default";
       }
     });
+
+    this.inputControl.onChange("d", (isDown) => {
+      if (isDown) {
+        this.mouseMode = "draw";
+      }
+    });
+
+    this.inputControl.onChange("s", (isDown) => {
+      if (isDown) {
+        this.mouseMode = "select";
+      }
+    });
   }
 
   handleMouse() {

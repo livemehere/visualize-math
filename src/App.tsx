@@ -55,11 +55,15 @@ function App() {
         </button>
         <button
           onClick={() => {
-            boardRef.current!.zoom -= 0.1;
+            boardRef.current!.zoom = Math.max(
+              0.5,
+              boardRef.current!.zoom - 0.1,
+            );
           }}
         >
           ZOOM -10%
         </button>
+        <button>Grid size 👉</button>
         <input
           type="number"
           value={gridGap}
@@ -71,15 +75,16 @@ function App() {
             boardRef.current!.mouseMode = "select";
           }}
         >
-          Select Mode
+          Select Mode (s)
         </button>
         <button
           onClick={() => {
             boardRef.current!.mouseMode = "draw";
           }}
         >
-          Draw Mode
+          Draw Mode (d)
         </button>
+        <button>Wheel to zoom</button>
       </div>
       <div className={"absolute right-10 top-10 flex flex-col gap-4"}>
         <AnimatePresence>
